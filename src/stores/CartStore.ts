@@ -8,55 +8,55 @@ export type CartItem = {
   image?: string;
 };
 
-export class CartStore {
-  items: CartItem[] = [];
+export function createCartStore() {
+  return makeAutoObservable({
+    items: [] as CartItem[],
 
-  constructor() {
-    makeAutoObservable(this);
-    // load from sessionStorage if available
-    try {
-      const raw = sessionStorage.getItem('cart_v1');
-      if (raw) this.items = JSON.parse(raw);
-    } catch (e) {
-      console.warn('failed to read cart from sessionStorage', e);
+    load() {
+      try {
+        const raw = sessionStorage.getItem("cart_v1");
+        if (raw) this.items = JSON.parse(raw);
+      } catch (e) {
+        console.warn("failed to read cart", e);
+      }
+    },
+
+    save() {
+      try {
+        sessionStorage.setItem("cart_v1", JSON.stringify(this.items));
+      } catch (e) {
+        console.warn("failed to save cart", e);
+      }
+    },
+
+    add(item: Omit<CartItem, "qty">, qty = 1) {
+      const found = this.items.find((i) => i.id === item.id);
+      if (found) found.qty += qty;
+      else this.items.push({ ...item, qty });
+
+      this.save();
+    },
+
+    remove(id: number) {
+      this.items = this.items.filter((i) => i.id !== id);
+      this.save();
+    },
+
+    clear() {
+      this.items = [];
+      this.save();
+    },
+
+    get totalItems() {
+      return this.items.reduce((s, i) => s + i.qty, 0);
+    },
+
+    get totalValue() {
+      return this.items.reduce((s, i) => s + i.qty * i.price, 0);
     }
-  }
-
-  save() {
-    try {
-      sessionStorage.setItem('cart_v1', JSON.stringify(this.items));
-    } catch (e) {
-      console.warn('failed to save cart', e);
-    }
-  }
-
-  add(item: Omit<CartItem, 'qty'>, qty = 1) {
-    const found = this.items.find(i => i.id === item.id);
-    if (found) {
-      found.qty += qty;
-    } else {
-      this.items.push({ ...item, qty });
-    }
-    this.save();
-  }
-
-  remove(id: number) {
-    this.items = this.items.filter(i => i.id !== id);
-    this.save();
-  }
-
-  clear() {
-    this.items = [];
-    this.save();
-  }
-
-  get totalItems() {
-    return this.items.reduce((s, i) => s + i.qty, 0);
-  }
-
-  get totalValue() {
-    return this.items.reduce((s, i) => s + i.qty * i.price, 0);
-  }
+  });
 }
 
-export const cartStore = new CartStore();
+
+export const cartStore = createCartStore();
+cartStore.load();

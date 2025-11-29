@@ -5,12 +5,8 @@ import ProductDetailWrapper from './pages/ProductDetail';
 import CartPageWrapper from './pages/CartPage';
 import Footer from './components/Footer';
 
-// Because the requirement asked for class components, we implement pages as class components;
-// however to use useSearchParams (a hook) we wrap them in small functional wrappers that pass search params as props.
-
 function AppInner() {
   const [sp] = useSearchParams();
-  // keep search params available (but pages will choose whether to use them)
   const search = sp.toString();
   return (
     <div style={{minHeight:'100vh', display:'flex', flexDirection:'column'}}>
